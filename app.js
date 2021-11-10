@@ -1,8 +1,12 @@
 const express = require('express');
 const cors = require('cors');
+const uniqid = require('uniqid');
 
 const app = express();
+app.use(express.json());
 app.use(cors());
+
+let id = 3;
 
 const blogPosts = [
   {
@@ -68,6 +72,25 @@ app.get('/posts/:id', (req, res) => {
   res.send(blogPosts.filter((post) => post.id === parseInt(id)));
 });
 
-app.post('/destinations/:destination/blog-posts');
+app.post('/destinations/:destination/blog-posts', (req, res) => {
+  const { name, message, date, photos } = req.body;
+  const { destination } = req.params;
+  const newPost = {
+    id: uniqid(),
+    name,
+    message,
+    date,
+    photos,
+    country: destination,
+  };
+  res.send('Received data');
+  blogPosts.push(newPost);
+  console.log(blogPosts);
+});
+
+// app.post('/destinations/:destination/blog-posts', (req, res) => {
+//   console.log(req.body);
+//   res.send('Received data');
+// });
 
 app.listen(5000, () => console.log('server listening on port 5000'));
