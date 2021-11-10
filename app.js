@@ -1,12 +1,26 @@
 const express = require('express');
 const cors = require('cors');
 const uniqid = require('uniqid');
+const axios = require('axios');
+const dotenv = require('dotenv');
 
+dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-let id = 3;
+const privateKey = process.env.UPLOAD_CARE_PRIVATE_KEY;
+const publicKey = process.env.UPLOAD_CARE_PUBLIC_KEY;
+function extractImageUrlsFromGroupUrl(groupId) {
+  return axios
+    .get(`https://api.uploadcare.com/groups/${groupId}/`, {
+      headers: {
+        Authorization: `Uploadcare.Simple ${publicKey}:${privateKey}`,
+        Accept: 'application/vnd.uploadcare-v0.5+json',
+      },
+    })
+    .then((res) => res.data.files.map((f) => f.original_file_url));
+}
 
 const blogPosts = [
   {
@@ -74,26 +88,23 @@ app.get('/posts/:id', (req, res) => {
 
 app.post('/destinations/:destination/blog-posts', (req, res) => {
   const { name, message, date, tags, photos } = req.body;
-  const { destination } = req.params;
-  const newPost = {
-    id: uniqid(),
-    name,
-    message,
-    date,
-    tags,
-    photos,
-    country: destination,
-  };
-  res.send('Received data');
+  console.log(photos);
+  extractImageUrlsFromGroupUrl(photos).then((pictures) => {
+    const { destination } = req.params;
+    const newPost = {
+      id: uniqid(),
+      name,
+      message,
+      date,
+      tags,
+      photos: pictures,
+      country: destination,
+    };
+    res.send('Received data');
 
-  blogPosts.push(newPost);
-  // console.log(blogPosts);
-  console.log(newPost);
+    blogPosts.push(newPost);
+    console.log(newPost);
+  });
 });
-
-// app.post('/destinations/:destination/blog-posts', (req, res) => {
-//   console.log(req.body);
-//   res.send('Received data');
-// });
 
 app.listen(5000, () => console.log('server listening on port 5000'));
