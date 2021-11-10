@@ -73,19 +73,22 @@ app.get('/posts/:id', (req, res) => {
 });
 
 app.post('/destinations/:destination/blog-posts', (req, res) => {
-  const { name, message, date, photos } = req.body;
+  const { name, message, date, tags, photos } = req.body;
   const { destination } = req.params;
   const newPost = {
     id: uniqid(),
     name,
     message,
     date,
+    tags,
     photos,
     country: destination,
   };
   res.send('Received data');
+
   blogPosts.push(newPost);
-  console.log(blogPosts);
+  // console.log(blogPosts);
+  console.log(newPost);
 });
 
 // app.post('/destinations/:destination/blog-posts', (req, res) => {
