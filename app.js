@@ -5,7 +5,6 @@ const axios = require('axios');
 const dotenv = require('dotenv');
 const mysql = require('mysql2');
 
-
 dotenv.config();
 const app = express();
 app.use(express.json());
@@ -27,8 +26,6 @@ connection.query('INSERT INTO stuff (number) VALUES (12) ', function (err) {
   if (err) throw err;
   console.log('DONE');
 });
-
-connection.end();
 
 const privateKey = process.env.UPLOAD_CARE_PRIVATE_KEY;
 const publicKey = process.env.UPLOAD_CARE_PUBLIC_KEY;
@@ -107,25 +104,43 @@ app.get('/posts/:id', (req, res) => {
   res.send(blogPosts.filter((post) => post.id === parseInt(id)));
 });
 
-app.post('/destinations/:destination/blog-posts', (req, res) => {
-  const { name, message, date, tags, photos } = req.body;
-  console.log(photos);
-  extractImageUrlsFromGroupUrl(photos).then((pictures) => {
-    const { destination } = req.params;
-    const newPost = {
-      id: uniqid(),
-      name,
-      message,
-      date,
-      tags,
-      photos: pictures,
-      country: destination,
-    };
-    res.send('Received data');
+// app.post('/destinations/:destination/blog-posts', (req, res) => {
+//   const { name, message, date, tags, photos } = req.body;
+//   console.log(photos);
+//   extractImageUrlsFromGroupUrl(photos).then((pictures) => {
+//     const { destination } = req.params;
+//     const newPost = {
+//       id: uniqid(),
+//       name,
+//       message,
+//       date,
+//       tags,
+//       photos: pictures,
+//       country: destination,
+//     };
+//     res.send('Received data');
 
-    blogPosts.push(newPost);
-    console.log(newPost);
-  });
+//     blogPosts.push(newPost);
+//     console.log(newPost);
+//   });
+// });
+
+app.post('/destinations/:destination/blog-posts', (req, res) => {
+  const { name } = req.body;
+  const { destination } = req.params;
+  const newPost = {
+    name,
+    country: destination,
+  };
+  res.send('Received data');
+
+  connection.query(
+    `INSERT INTO test2 (name, country) VALUES ('${newPost.name}', '${newPost.country}') `,
+    function (err) {
+      if (err) throw err;
+      console.log('DONE');
+    }
+  );
 });
 
 app.listen(5000, () => console.log('server listening on port 5000'));
