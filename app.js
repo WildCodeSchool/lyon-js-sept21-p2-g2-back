@@ -3,11 +3,31 @@ const cors = require('cors');
 const uniqid = require('uniqid');
 const axios = require('axios');
 const dotenv = require('dotenv');
+const mysql = require('mysql2');
 
 dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+const connection = require('./db-config');
+
+connection.connect((err) => {
+  if (err) {
+    console.error('error connecting: ' + err.stack);
+  } else {
+    console.log(
+      'connected to database with threadId :  ' + connection.threadId
+    );
+  }
+});
+
+connection.query('INSERT INTO stuff (number) VALUES (12) ', function (err) {
+  if (err) throw err;
+  console.log('DONE');
+});
+
+connection.end();
 
 const privateKey = process.env.UPLOAD_CARE_PRIVATE_KEY;
 const publicKey = process.env.UPLOAD_CARE_PUBLIC_KEY;
