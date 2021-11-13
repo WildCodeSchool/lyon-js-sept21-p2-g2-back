@@ -132,10 +132,12 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
     name,
     country: destination,
   };
+  console.log(newPost);
   res.send('Received data');
 
   connection.query(
-    `INSERT INTO test2 (name, country) VALUES ('${newPost.name}', '${newPost.country}') `,
+    'INSERT INTO test2 (name, country) VALUES (?, ?)',
+    [name, destination],
     function (err) {
       if (err) throw err;
       console.log('DONE');
