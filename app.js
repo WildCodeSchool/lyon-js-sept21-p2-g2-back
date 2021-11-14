@@ -22,11 +22,6 @@ connection.connect((err) => {
   }
 });
 
-connection.query('INSERT INTO stuff (number) VALUES (12) ', function (err) {
-  if (err) throw err;
-  console.log('DONE');
-});
-
 const privateKey = process.env.UPLOAD_CARE_PRIVATE_KEY;
 const publicKey = process.env.UPLOAD_CARE_PUBLIC_KEY;
 function extractImageUrlsFromGroupUrl(groupId) {
@@ -61,12 +56,18 @@ const blogPosts = [
   {
     id: 2,
     name: 'Erembert Q.',
-    avatar: 'https://unsplash.com/photos/6anudmpILw4',
+    avatar:
+      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=870&q=80',
     date: { beginning: '24.02.2019', end: '22.03.2019' },
-    message: 'blablablablabla',
+    message:
+      'Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.',
     tags: ['architecture', 'museum', 'history', 'culture'],
-    photos: [],
-    country: 'ivory coast',
+    photos: [
+      'https://images.unsplash.com/photo-1545889238-ae8ff5ab582f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=869&q=80',
+      'https://images.unsplash.com/photo-1588388866431-15cbdbe37634?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=870&q=80',
+      'https://images.unsplash.com/photo-1586397205525-231a3e327902?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=870&q=80',
+    ],
+    country: 'argentina',
   },
   {
     id: 3,
@@ -104,45 +105,45 @@ app.get('/posts/:id', (req, res) => {
   res.send(blogPosts.filter((post) => post.id === parseInt(id)));
 });
 
-// app.post('/destinations/:destination/blog-posts', (req, res) => {
-//   const { name, message, date, tags, photos } = req.body;
-//   console.log(photos);
-//   extractImageUrlsFromGroupUrl(photos).then((pictures) => {
-//     const { destination } = req.params;
-//     const newPost = {
-//       id: uniqid(),
-//       name,
-//       message,
-//       date,
-//       tags,
-//       photos: pictures,
-//       country: destination,
-//     };
-//     res.send('Received data');
-
-//     blogPosts.push(newPost);
-//     console.log(newPost);
-//   });
-// });
-
 app.post('/destinations/:destination/blog-posts', (req, res) => {
-  const { name } = req.body;
-  const { destination } = req.params;
-  const newPost = {
-    name,
-    country: destination,
-  };
-  console.log(newPost);
-  res.send('Received data');
+  const { name, message, date, tags, photos } = req.body;
+  console.log(photos);
+  extractImageUrlsFromGroupUrl(photos).then((pictures) => {
+    const { destination } = req.params;
+    const newPost = {
+      id: uniqid(),
+      name,
+      message,
+      date,
+      tags,
+      photos: pictures,
+      country: destination,
+    };
+    res.send('Received data');
 
-  connection.query(
-    'INSERT INTO test2 (name, country) VALUES (?, ?)',
-    [name, destination],
-    function (err) {
-      if (err) throw err;
-      console.log('DONE');
-    }
-  );
+    blogPosts.push(newPost);
+    console.log(newPost);
+  });
 });
+
+// app.post('/destinations/:destination/blog-posts', (req, res) => {
+//   const { name } = req.body;
+//   const { destination } = req.params;
+//   const newPost = {
+//     name,
+//     country: destination,
+//   };
+//   console.log(newPost);
+//   res.send('Received data');
+
+//   connection.query(
+//     'INSERT INTO test2 (name, country) VALUES (?, ?)',
+//     [name, destination],
+//     function (err) {
+//       if (err) throw err;
+//       console.log('DONE');
+//     }
+//   );
+// });
 
 app.listen(5000, () => console.log('server listening on port 5000'));
