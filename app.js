@@ -3,7 +3,6 @@ const cors = require('cors');
 const uniqid = require('uniqid');
 const axios = require('axios');
 const dotenv = require('dotenv');
-const mysql = require('mysql2');
 
 dotenv.config();
 const app = express();
