@@ -96,7 +96,7 @@ app.get('/destinations/:destination/blog-posts', (req, res) => {
   const { destination } = req.params;
   // console.log(destination);
   connection.query(
-    'SELECT * FROM post WHERE country=destination',
+    `SELECT * FROM post WHERE country=${destination}`,
     (err, results) => {
       if (err) {
         res.status(500).send(`An error occurred: ${err.message}`);
