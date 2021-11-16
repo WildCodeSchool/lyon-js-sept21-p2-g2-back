@@ -40,7 +40,6 @@ app.get('/destinations/:destination/blog-posts', (req, res) => {
     'SELECT * FROM post INNER JOIN user ON authorId = user.id WHERE country = (?)',
     [destination],
     (err, results) => {
-      console.log(results);
       if (err) {
         res.status(500).send(`An error occurred: ${err.message}`);
       } else {
@@ -52,7 +51,6 @@ app.get('/destinations/:destination/blog-posts', (req, res) => {
 
 app.get('/posts/:id', (req, res) => {
   const { id } = req.params;
-  console.log(id);
   connection.query(
     'SELECT * FROM post p INNER JOIN user ON authorId = user.id WHERE authorId = (?)',
     [id],
@@ -70,27 +68,30 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
   const { name, date, message, photos } = req.body;
   const { destination } = req.params;
   extractImageUrlsFromGroupUrl(photos).then((pictures) => {
-    const truc = pictures.toString();
+    let extractedPhotos = pictures.toString();
     connection.query(
-      'INSERT INTO post(tripDate, postContent, pictures, country) VALUES (?, ?, ?, ?)',
-      [date, message, truc, destination],
+      'INSERT INTO user(username) VALUES (?)',
+      [name],
       (err, results) => {
         if (err) {
           res.status(500).send(`An error occurred: ${err.message}`);
         } else {
-          console.log(results);
-          //res.status(200).send(results);
+          const insertedID = results.insertId;
+          connection.query(
+            'INSERT INTO post (authorId, tripDate, postContent, pictures, country) VALUES (?, ?, ?, ?, ?)',
+            [insertedID, date, message, extractedPhotos, destination],
+            (err, result) => {
+              if (err) {
+                res.status(500).send(`An error occurred: ${err.message}`);
+              } else {
+                res.status(201).send(result);
+              }
+            }
+          );
         }
       }
     );
   });
-  // const newPost = {
-  //   name,
-  //   date,
-  //   message,
-  //   photos: pictures,
-  //   country: destination,
-  // };
 });
 
 app.listen(5000, () => console.log('server listening on port 5000'));
