@@ -64,6 +64,21 @@ app.get('/posts/:id', (req, res) => {
   );
 });
 
+app.get('/posts/:id/comments', (req, res) => {
+  const { id } = req.params;
+  connection.query(
+    'SELECT * FROM comment WHERE postId = (?)',
+    [id],
+    (err, results) => {
+      if (err) {
+        res.status(500).send(`An error occurred: ${err.message}`);
+      } else {
+        res.status(200).send(results);
+      }
+    }
+  );
+});
+
 app.post('/destinations/:destination/blog-posts', (req, res) => {
   const { name, date, message, photos } = req.body;
   const { destination } = req.params;
@@ -92,6 +107,22 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
       }
     );
   });
+});
+
+app.post('/blog-posts/:id', (req, res) => {
+  const { commentAuthor, content } = req.body;
+  const { id } = req.params;
+  connection.query(
+    'INSERT INTO comment(postId, commentAuthor, content) VALUES (?, ?, ?)',
+    [id, commentAuthor, content],
+    (err, results) => {
+      if (err) {
+        res.status(500).send(`An error occurred: ${err.message}`);
+      } else {
+        res.status(201).send(results);
+      }
+    }
+  );
 });
 
 app.listen(5000, () => console.log('server listening on port 5000'));
