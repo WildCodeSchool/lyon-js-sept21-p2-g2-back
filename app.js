@@ -84,24 +84,45 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
   const { destination } = req.params;
   extractImageUrlsFromGroupUrl(photos).then((pictures) => {
     let extractedPhotos = pictures.toString();
-
     connection.query(
-      'SELECT username FROM user WHERE '
-      'INSERT INTO user(username) VALUES (?)',
+      'SELECT * FROM user WHERE username = (?)',
       [name],
-      (err, results) => {
-        if (err) {
-          res.status(500).send(`An error occurred: ${err.message}`);
-        } else {
-          const insertedID = results.insertId;
+      (err, result) => {
+        if (result[0]) {
+          console.log('Username already exists');
+          const existingID = result[0].id;
+          console.log(existingID);
           connection.query(
             'INSERT INTO post (authorId, tripDate, postContent, pictures, country) VALUES (?, ?, ?, ?, ?)',
-            [insertedID, date, message, extractedPhotos, destination],
+            [existingID, date, message, extractedPhotos, destination],
             (err, result) => {
               if (err) {
                 res.status(500).send(`An error occurred: ${err.message}`);
               } else {
-                res.status(201).send(result);
+                res.status(201).send(result[0]);
+              }
+            }
+          );
+        } else {
+          connection.query(
+            'INSERT INTO user(username) VALUES (?)',
+            [name],
+            (err, results) => {
+              if (err) {
+                res.status(500).send(`An error occurred: ${err.message}`);
+              } else {
+                const insertedID = results.insertId;
+                connection.query(
+                  'INSERT INTO post (authorId, tripDate, postContent, pictures, country) VALUES (?, ?, ?, ?, ?)',
+                  [insertedID, date, message, extractedPhotos, destination],
+                  (err, result) => {
+                    if (err) {
+                      res.status(500).send(`An error occurred: ${err.message}`);
+                    } else {
+                      res.status(201).send(result);
+                    }
+                  }
+                );
               }
             }
           );
@@ -128,3 +149,14 @@ app.post('/blog-posts/:id/comments', (req, res) => {
 });
 
 app.listen(5000, () => console.log('server listening on port 5000'));
+
+//         const insertedID = results.insertId;
+//         connection.query(
+//           'INSERT INTO post (authorId, tripDate, postContent, pictures, country) VALUES (?, ?, ?, ?, ?)',
+//           [insertedID, date, message, extractedPhotos, destination],
+//           (err, result) => {
+//             if (err) {
+//               res.status(500).send(`An error occurred: ${err.message}`);
+//             } else {
+//               res.status(201).send(result);
+//             }
