@@ -84,7 +84,9 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
   const { destination } = req.params;
   extractImageUrlsFromGroupUrl(photos).then((pictures) => {
     let extractedPhotos = pictures.toString();
+
     connection.query(
+      'SELECT username FROM user WHERE '
       'INSERT INTO user(username) VALUES (?)',
       [name],
       (err, results) => {
@@ -109,7 +111,7 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
   });
 });
 
-app.post('/blog-posts/:id', (req, res) => {
+app.post('/blog-posts/:id/comments', (req, res) => {
   const { commentAuthor, content } = req.body;
   const { id } = req.params;
   connection.query(
