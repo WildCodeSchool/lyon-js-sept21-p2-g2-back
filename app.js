@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-const uniqid = require('uniqid');
 const axios = require('axios');
 const dotenv = require('dotenv');
+const connection = require('./db-config');
 
 dotenv.config();
 const app = express();
