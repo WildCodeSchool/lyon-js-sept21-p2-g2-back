@@ -20,8 +20,7 @@ const corsOptions = {
 
 const app = express();
 
-app.options('*', cors()); // include before other routes
-// app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const privateKey = process.env.UPLOAD_CARE_PRIVATE_KEY;
