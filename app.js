@@ -26,15 +26,15 @@ function extractImageUrlsFromGroupUrl(groupId) {
 app.get('/destinations/:destination/blog-posts', (req, res) => {
   const { destination } = req.params;
   let sql =
-    'SELECT * FROM post INNER JOIN user ON authorId = user.id WHERE country = (?)';
+    'SELECT p.id, p.authorId, p.pictures, p.postContent, p.country, p.tripDate, u.username, u.avatar FROM post p INNER JOIN user u ON p.authorId = u.id WHERE country = (?)';
   let parameters = [destination];
   if (req.query.tags) {
     if (typeof req.query.tags === 'string') {
-      sql = `SELECT * FROM post p INNER JOIN user u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE p.country=? AND tags LIKE ?`;
+      sql = `SELECT p.id, p.authorId, p.pictures, p.postContent, p.country, p.tripDate, u.username, u.avatar FROM post p INNER JOIN user u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE p.country=? AND tags LIKE ?`;
       parameters.push(`%${req.query.tags}%`);
     } else {
       sql =
-        'SELECT * FROM post p INNER JOIN `user` u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE tags LIKE ?';
+        'SELECT p.id, p.authorId, p.pictures, p.postContent, p.country, p.tripDate, u.username, u.avatar FROM post p INNER JOIN user u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE tags LIKE ?';
       let tagsArray = [];
       for (let i = 0; i < req.query.tags.length; i++) {
         let foundTag = `%${req.query.tags[i]}%`;
@@ -43,14 +43,15 @@ app.get('/destinations/:destination/blog-posts', (req, res) => {
           sql += ' OR tags LIKE ?';
         }
       }
-      parameters = tagsArray.unshift(destination);
-      console.log(parameters, sql);
+      tagsArray.unshift(destination);
+      parameters = tagsArray;
     }
   }
   connection.query(sql, parameters, (err, results) => {
     if (err) {
       res.status(500).send(`An error occurred: ${err.message}`);
     } else {
+      console.log(results);
       res.status(200).send(results);
     }
   });
@@ -58,15 +59,15 @@ app.get('/destinations/:destination/blog-posts', (req, res) => {
 
 app.get('/posts/:id', (req, res) => {
   const { id } = req.params;
+  console.log(`id: ${id}`);
   connection.query(
-    'SELECT p.*, u.* FROM post p INNER JOIN user u ON p.authorId = u.id WHERE p.authorId = (?)',
+    'SELECT p.*, u.* FROM post p INNER JOIN user u ON p.authorId = u.id WHERE p.id = (?)',
     [id],
     (err, results) => {
       if (err) {
         console.log(err);
         res.status(500).send(`An error occurred: ${err.message}`);
       } else {
-        console.log(results);
         res.status(200).send(results);
       }
     }
@@ -113,9 +114,7 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
                 connection.query(
                   'INSERT INTO post_tag (postId, tags) VALUES (?, ?)',
                   [result.insertId, tags],
-                  (err, result) => {
-                    console.log(result);
-                    console.error(err);
+                  (err) => {
                     if (err) res.status(500).send(err.message);
                     else {
                       res.status(201).send({
@@ -151,7 +150,7 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
                       connection.query(
                         'INSERT INTO post_tag (postId, tags) VALUES (?, ?)',
                         [result.insertId, tags],
-                        (err, result) => {
+                        (err) => {
                           if (err) res.status(500).send(err.message);
                           else {
                             res.status(201).send({
