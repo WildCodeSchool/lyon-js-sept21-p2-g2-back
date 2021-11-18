@@ -41,9 +41,8 @@ app.get('/destinations/:destination/blog-posts', (req, res) => {
   let parameters = [destination];
   if (req.query.tags) {
     if (typeof req.query.tags === 'string') {
-      sql =
-        'SELECT * FROM post p INNER JOIN `user` u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE tags LIKE ?';
-      parameters = `%${req.query.tags}%`;
+      sql = `SELECT * FROM post p INNER JOIN user u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE p.country=? AND tags LIKE ?`;
+      parameters.push(`%${req.query.tags}%`);
     } else {
       sql =
         'SELECT * FROM post p INNER JOIN `user` u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE tags LIKE ?';
@@ -55,7 +54,7 @@ app.get('/destinations/:destination/blog-posts', (req, res) => {
           sql += ' OR tags LIKE ?';
         }
       }
-      parameters = tagsArray;
+      parameters = tagsArray.unshift(destination);
       console.log(parameters, sql);
     }
   }
