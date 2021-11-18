@@ -106,27 +106,25 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
             'INSERT INTO post (authorId, tripDate, postContent, pictures, country) VALUES (?, ?, ?, ?, ?)',
             [existingID, date, message, extractedPhotos, destination],
             (err, result) => {
+              console.error(err);
               if (err) {
                 res.status(500).send(`An error occurred: ${err.message}`);
               } else {
-                // res.status(201).send({
-                //   id: result.insertId,
-                //   date,
-                //   message,
-                //   tags,
-                //   extractedPhotos,
-                //   destination,
-                // });
                 connection.query(
                   'INSERT INTO post_tag (postId, tags) VALUES (?, ?)',
                   [result.insertId, tags],
                   (err, result) => {
                     console.log(result);
+                    console.error(err);
                     if (err) res.status(500).send(err.message);
                     else {
                       res.status(201).send({
-                        postId: result.insertId,
+                        id: result.insertId,
+                        date,
+                        message,
                         tags,
+                        extractedPhotos,
+                        destination,
                       });
                     }
                   }
@@ -150,14 +148,6 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
                     if (err) {
                       res.status(500).send(`An error occurred: ${err.message}`);
                     } else {
-                      // res.status(201).send({
-                      //   id: result.insertId,
-                      //   date,
-                      //   message,
-                      //   tags,
-                      //   extractedPhotos,
-                      //   destination,
-                      // });
                       connection.query(
                         'INSERT INTO post_tag (postId, tags) VALUES (?, ?)',
                         [result.insertId, tags],
@@ -165,8 +155,12 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
                           if (err) res.status(500).send(err.message);
                           else {
                             res.status(201).send({
-                              postId: result.insertId,
+                              id: result.insertId,
+                              date,
+                              message,
                               tags,
+                              extractedPhotos,
+                              destination,
                             });
                           }
                         }
