@@ -22,89 +22,179 @@ function extractImageUrlsFromGroupUrl(groupId) {
     .then((res) => res.data.files.map((f) => f.original_file_url));
 }
 
-const blogPosts = [
-  {
-    id: 1,
-    name: 'Nicolas C.',
-    avatar:
-      'https://images.unsplash.com/photo-1623330188314-8f4645626731?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=417&q=80https://unsplash.com/photos/-Tc8w2Kvsf8',
-    date: { beginning: '12.06.2020', end: '21.06.2020' },
-    message:
-      'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.',
-    tags: ['food', 'thrills', 'hiking'],
-    photos: [
-      'https://images.unsplash.com/photo-1523592121529-f6dde35f079e?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=870&q=80',
-
-      'https://images.unsplash.com/photo-1501179691627-eeaa65ea017c?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80',
-      'https://images.unsplash.com/photo-1526494631344-8c6fa6462b17?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=870&q=80',
-    ],
-    country: 'indonesia',
-  },
-  {
-    id: 2,
-    name: 'Erembert Q.',
-    avatar: 'https://unsplash.com/photos/6anudmpILw4',
-    date: { beginning: '24.02.2019', end: '22.03.2019' },
-    message: 'blablablablabla',
-    tags: ['architecture', 'museum', 'history', 'culture'],
-    photos: [],
-    country: 'ivory coast',
-  },
-  {
-    id: 3,
-    name: 'Joshua B.',
-    avatar:
-      'https://images.unsplash.com/photo-1624561172888-ac93c696e10c?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=389&q=80',
-    date: { beginning: '02.09.2021', end: '16.09.2021' },
-    message: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Recusandae
-    totam quis nam. Placeat modi error non eveniet eligendi expedita autem
-    officia? Aperiam soluta, iste sequi, perferendis aliquam molestiae
-    expedita nisi molestias asperiores quidem, omnis veritatis. Commodi
-    cupiditate nulla quo ab quod accusamus ex? Aperiam fugiat dolores
-    quaerat nam rem, a nihil ex? Pariatur in ullam delectus eius. Ad, illum
-    neque.`,
-    tags: ['music', 'religion', 'culture'],
-    photos: [
-      'https://images.unsplash.com/photo-1480796927426-f609979314bd?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=870&q=80',
-      'https://images.unsplash.com/photo-1528164344705-47542687000d?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=892&q=80',
-      'https://images.unsplash.com/photo-1528360983277-13d401cdc186?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=870&q=80',
-      'https://images.unsplash.com/photo-1533050487297-09b450131914?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80',
-    ],
-    country: 'japan',
-  },
-];
-
 app.get('/destinations/:destination/blog-posts', (req, res) => {
   const { destination } = req.params;
-  console.log(destination);
-  res.send(blogPosts.filter((post) => post.country === destination));
+  let sql =
+    'SELECT * FROM post INNER JOIN user ON authorId = user.id WHERE country = (?)';
+  let parameters = [destination];
+  if (req.query.tags) {
+    if (typeof req.query.tags === 'string') {
+      sql = `SELECT * FROM post p INNER JOIN user u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE p.country=? AND tags LIKE ?`;
+      parameters.push(`%${req.query.tags}%`);
+    } else {
+      sql =
+        'SELECT * FROM post p INNER JOIN `user` u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE tags LIKE ?';
+      let tagsArray = [];
+      for (let i = 0; i < req.query.tags.length; i++) {
+        let foundTag = `%${req.query.tags[i]}%`;
+        tagsArray.push(foundTag);
+        if (tagsArray.length > 1) {
+          sql += ' OR tags LIKE ?';
+        }
+      }
+      parameters = tagsArray.unshift(destination);
+      console.log(parameters, sql);
+    }
+  }
+  connection.query(sql, parameters, (err, results) => {
+    if (err) {
+      res.status(500).send(`An error occurred: ${err.message}`);
+    } else {
+      res.status(200).send(results);
+    }
+  });
 });
 
 app.get('/posts/:id', (req, res) => {
   const { id } = req.params;
-  console.log(id);
-  res.send(blogPosts.filter((post) => post.id === parseInt(id)));
+  connection.query(
+    'SELECT p.*, u.* FROM post p INNER JOIN user u ON p.authorId = u.id WHERE p.authorId = (?)',
+    [id],
+    (err, results) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send(`An error occurred: ${err.message}`);
+      } else {
+        console.log(results);
+        res.status(200).send(results);
+      }
+    }
+  );
+});
+
+app.get('/posts/:id/comments', (req, res) => {
+  const { id } = req.params;
+  connection.query(
+    'SELECT * FROM comment WHERE postId = (?)',
+    [id],
+    (err, results) => {
+      if (err) {
+        res.status(500).send(`An error occurred: ${err.message}`);
+      } else {
+        res.status(200).send(results);
+      }
+    }
+  );
 });
 
 app.post('/destinations/:destination/blog-posts', (req, res) => {
-  const { name, message, date, tags, photos } = req.body;
-  console.log(photos);
+  const { name, avatar, date, message, tags, photos } = req.body;
+  const { destination } = req.params;
   extractImageUrlsFromGroupUrl(photos).then((pictures) => {
-    const { destination } = req.params;
-    const newPost = {
-      id: uniqid(),
-      name,
-      message,
-      date,
-      tags,
-      photos: pictures,
-      country: destination,
-    };
-    res.send('Received data');
-
-    blogPosts.push(newPost);
-    console.log(newPost);
+    let extractedPhotos = pictures.toString();
+    connection.query(
+      'SELECT * FROM user WHERE username = (?)',
+      [name],
+      (err, result) => {
+        if (result[0]) {
+          console.log('Username already exists');
+          const existingID = result[0].id;
+          console.log(existingID);
+          connection.query(
+            'INSERT INTO post (authorId, tripDate, postContent, pictures, country) VALUES (?, ?, ?, ?, ?)',
+            [existingID, date, message, extractedPhotos, destination],
+            (err, result) => {
+              if (err) {
+                res.status(500).send(`An error occurred: ${err.message}`);
+              } else {
+                // res.status(201).send({
+                //   id: result.insertId,
+                //   date,
+                //   message,
+                //   tags,
+                //   extractedPhotos,
+                //   destination,
+                // });
+                connection.query(
+                  'INSERT INTO post_tag (postId, tags) VALUES (?, ?)',
+                  [result.insertId, tags],
+                  (err, result) => {
+                    console.log(result);
+                    if (err) res.status(500).send(err.message);
+                    else {
+                      res.status(201).send({
+                        postId: result.insertId,
+                        tags,
+                      });
+                    }
+                  }
+                );
+              }
+            }
+          );
+        } else {
+          connection.query(
+            'INSERT INTO user(username, avatar) VALUES (?, ?)',
+            [name, avatar],
+            (err, results) => {
+              if (err) {
+                res.status(500).send(`An error occurred: ${err.message}`);
+              } else {
+                const insertedID = results.insertId;
+                connection.query(
+                  'INSERT INTO post (authorId, tripDate, postContent, pictures, country) VALUES (?, ?, ?, ?, ?)',
+                  [insertedID, date, message, extractedPhotos, destination],
+                  (err, result) => {
+                    if (err) {
+                      res.status(500).send(`An error occurred: ${err.message}`);
+                    } else {
+                      // res.status(201).send({
+                      //   id: result.insertId,
+                      //   date,
+                      //   message,
+                      //   tags,
+                      //   extractedPhotos,
+                      //   destination,
+                      // });
+                      connection.query(
+                        'INSERT INTO post_tag (postId, tags) VALUES (?, ?)',
+                        [result.insertId, tags],
+                        (err, result) => {
+                          if (err) res.status(500).send(err.message);
+                          else {
+                            res.status(201).send({
+                              postId: result.insertId,
+                              tags,
+                            });
+                          }
+                        }
+                      );
+                    }
+                  }
+                );
+              }
+            }
+          );
+        }
+      }
+    );
   });
+});
+
+app.post('/blog-posts/:id/comments', (req, res) => {
+  const { commentAuthor, content } = req.body;
+  const { id } = req.params;
+  connection.query(
+    'INSERT INTO comment(postId, commentAuthor, content) VALUES (?, ?, ?)',
+    [id, commentAuthor, content],
+    (err, results) => {
+      if (err) {
+        res.status(500).send(`An error occurred: ${err.message}`);
+      } else {
+        res.status(201).send(results);
+      }
+    }
+  );
 });
 
 app.listen(5000, () => console.log('server listening on port 5000'));
