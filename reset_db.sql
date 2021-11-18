@@ -1,16 +1,11 @@
 
-
-DROP TABLE IF EXISTS `comment`;
-CREATE TABLE `comment` (
+DROP TABLE IF EXISTS `user`;
+CREATE TABLE `user` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `postId` int NOT NULL,
-  `commentAuthor` varchar(255) NOT NULL,
-  `content` text NOT NULL,
-  `publishedAt` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `comment_fk0` (`postId`),
-  CONSTRAINT `comment_fk0` FOREIGN KEY (`postId`) REFERENCES `post` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4;
+  `avatar` text CHARACTER SET utf8mb4,
+  `username` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4;
 
 DROP TABLE IF EXISTS `post`;
 CREATE TABLE `post` (
@@ -26,6 +21,18 @@ CREATE TABLE `post` (
   CONSTRAINT `post_fk0` FOREIGN KEY (`authorId`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4;
 
+DROP TABLE IF EXISTS `comment`;
+CREATE TABLE `comment` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `postId` int NOT NULL,
+  `commentAuthor` varchar(255) NOT NULL,
+  `content` text NOT NULL,
+  `publishedAt` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `comment_fk0` (`postId`),
+  CONSTRAINT `comment_fk0` FOREIGN KEY (`postId`) REFERENCES `post` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4;
+
 DROP TABLE IF EXISTS `post_tag`;
 CREATE TABLE `post_tag` (
   `postId` int NOT NULL,
@@ -34,13 +41,6 @@ CREATE TABLE `post_tag` (
   CONSTRAINT `post_tag_fk0` FOREIGN KEY (`postId`) REFERENCES `post` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `avatar` text CHARACTER SET utf8mb4,
-  `username` varchar(50) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `comment` (`id`, `postId`, `commentAuthor`, `content`, `publishedAt`) VALUES
 (1, 1, 'John D.', 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ratione sequi praesentium commodi dolorem, accusamus itaque dolor laborum magnam et consequatur sed impedit quasi dolorum necessitatibus, nulla sint inventore! Minima tempora sapiente quisquam nam. Nam eum, odio commodi ullam maiores porro, reprehenderit quas voluptate quia necessitatibus numquam vel, voluptatem accusamus quibusdam?', NULL),
