@@ -1,25 +1,14 @@
 const express = require('express');
 const cors = require('cors');
-const uniqid = require('uniqid');
 const axios = require('axios');
 const dotenv = require('dotenv');
+const connection = require('./db-config');
 
 dotenv.config();
 const app = express();
-app.use(express.json());
+
 app.use(cors());
-
-const connection = require('./db-config');
-
-connection.connect((err) => {
-  if (err) {
-    console.error('error connecting: ' + err.stack);
-  } else {
-    console.log(
-      'connected to database with threadId :  ' + connection.threadId
-    );
-  }
-});
+app.use(express.json());
 
 const privateKey = process.env.UPLOAD_CARE_PRIVATE_KEY;
 const publicKey = process.env.UPLOAD_CARE_PUBLIC_KEY;
@@ -109,6 +98,7 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
       'SELECT * FROM user WHERE username = (?)',
       [name],
       (err, result) => {
+        console.error(err);
         if (result[0]) {
           console.log('Username already exists');
           const existingID = result[0].id;
@@ -117,6 +107,7 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
             'INSERT INTO post (authorId, tripDate, postContent, pictures, country) VALUES (?, ?, ?, ?, ?)',
             [existingID, date, message, extractedPhotos, destination],
             (err, result) => {
+              console.error(err);
               if (err) {
                 res.status(500).send(`An error occurred: ${err.message}`);
               } else {
@@ -124,7 +115,6 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
                   'INSERT INTO post_tag (postId, tags) VALUES (?, ?)',
                   [result.insertId, tags],
                   (err) => {
-                    // console.log(result);
                     if (err) res.status(500).send(err.message);
                     else {
                       res.status(201).send({
