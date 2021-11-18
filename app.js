@@ -36,28 +36,49 @@ function extractImageUrlsFromGroupUrl(groupId) {
 
 app.get('/destinations/:destination/blog-posts', (req, res) => {
   const { destination } = req.params;
-  connection.query(
-    'SELECT * FROM post INNER JOIN user ON authorId = user.id WHERE country = (?)',
-    [destination],
-    (err, results) => {
-      if (err) {
-        res.status(500).send(`An error occurred: ${err.message}`);
-      } else {
-        res.status(200).send(results);
+  let sql =
+    'SELECT * FROM post INNER JOIN user ON authorId = user.id WHERE country = (?)';
+  let parameters = [destination];
+  if (req.query.tags) {
+    if (typeof req.query.tags === 'string') {
+      sql =
+        'SELECT * FROM post p INNER JOIN `user` u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE tags LIKE ?';
+      parameters = `%${req.query.tags}%`;
+    } else {
+      sql =
+        'SELECT * FROM post p INNER JOIN `user` u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE tags LIKE ?';
+      let tagsArray = [];
+      for (let i = 0; i < req.query.tags.length; i++) {
+        let foundTag = `%${req.query.tags[i]}%`;
+        tagsArray.push(foundTag);
+        if (tagsArray.length > 1) {
+          sql += ' OR tags LIKE ?';
+        }
       }
+      parameters = tagsArray;
+      console.log(parameters, sql);
     }
-  );
+  }
+  connection.query(sql, parameters, (err, results) => {
+    if (err) {
+      res.status(500).send(`An error occurred: ${err.message}`);
+    } else {
+      res.status(200).send(results);
+    }
+  });
 });
 
 app.get('/posts/:id', (req, res) => {
   const { id } = req.params;
   connection.query(
-    'SELECT * FROM post p INNER JOIN user ON authorId = user.id WHERE authorId = (?)',
+    'SELECT p.*, u.* FROM post p INNER JOIN user u ON p.authorId = u.id WHERE p.authorId = (?)',
     [id],
     (err, results) => {
       if (err) {
+        console.log(err);
         res.status(500).send(`An error occurred: ${err.message}`);
       } else {
+        console.log(results);
         res.status(200).send(results);
       }
     }
@@ -80,7 +101,7 @@ app.get('/posts/:id/comments', (req, res) => {
 });
 
 app.post('/destinations/:destination/blog-posts', (req, res) => {
-  const { name, date, message, photos } = req.body;
+  const { name, avatar, date, message, tags, photos } = req.body;
   const { destination } = req.params;
   extractImageUrlsFromGroupUrl(photos).then((pictures) => {
     let extractedPhotos = pictures.toString();
@@ -99,14 +120,35 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
               if (err) {
                 res.status(500).send(`An error occurred: ${err.message}`);
               } else {
-                res.status(201).send(result[0]);
+                // res.status(201).send({
+                //   id: result.insertId,
+                //   date,
+                //   message,
+                //   tags,
+                //   extractedPhotos,
+                //   destination,
+                // });
+                connection.query(
+                  'INSERT INTO post_tag (postId, tags) VALUES (?, ?)',
+                  [result.insertId, tags],
+                  (err, result) => {
+                    console.log(result);
+                    if (err) res.status(500).send(err.message);
+                    else {
+                      res.status(201).send({
+                        postId: result.insertId,
+                        tags,
+                      });
+                    }
+                  }
+                );
               }
             }
           );
         } else {
           connection.query(
-            'INSERT INTO user(username) VALUES (?)',
-            [name],
+            'INSERT INTO user(username, avatar) VALUES (?, ?)',
+            [name, avatar],
             (err, results) => {
               if (err) {
                 res.status(500).send(`An error occurred: ${err.message}`);
@@ -119,7 +161,27 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
                     if (err) {
                       res.status(500).send(`An error occurred: ${err.message}`);
                     } else {
-                      res.status(201).send(result);
+                      // res.status(201).send({
+                      //   id: result.insertId,
+                      //   date,
+                      //   message,
+                      //   tags,
+                      //   extractedPhotos,
+                      //   destination,
+                      // });
+                      connection.query(
+                        'INSERT INTO post_tag (postId, tags) VALUES (?, ?)',
+                        [result.insertId, tags],
+                        (err, result) => {
+                          if (err) res.status(500).send(err.message);
+                          else {
+                            res.status(201).send({
+                              postId: result.insertId,
+                              tags,
+                            });
+                          }
+                        }
+                      );
                     }
                   }
                 );
@@ -149,14 +211,3 @@ app.post('/blog-posts/:id/comments', (req, res) => {
 });
 
 app.listen(5000, () => console.log('server listening on port 5000'));
-
-//         const insertedID = results.insertId;
-//         connection.query(
-//           'INSERT INTO post (authorId, tripDate, postContent, pictures, country) VALUES (?, ?, ?, ?, ?)',
-//           [insertedID, date, message, extractedPhotos, destination],
-//           (err, result) => {
-//             if (err) {
-//               res.status(500).send(`An error occurred: ${err.message}`);
-//             } else {
-//               res.status(201).send(result);
-//             }
