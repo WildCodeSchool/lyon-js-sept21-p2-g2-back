@@ -6,8 +6,8 @@ const connection = require('./db-config');
 
 dotenv.config();
 const app = express();
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
 const privateKey = process.env.UPLOAD_CARE_PRIVATE_KEY;
 const publicKey = process.env.UPLOAD_CARE_PUBLIC_KEY;
