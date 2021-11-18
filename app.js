@@ -6,21 +6,9 @@ const connection = require('./db-config');
 
 dotenv.config();
 
-const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS.split(',');
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (origin === undefined || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-};
-
 const app = express();
 
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json());
 
 const privateKey = process.env.UPLOAD_CARE_PRIVATE_KEY;
