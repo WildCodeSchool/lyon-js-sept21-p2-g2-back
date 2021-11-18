@@ -5,7 +5,6 @@ const dotenv = require('dotenv');
 const connection = require('./db-config');
 
 dotenv.config();
-
 const app = express();
 
 app.use(cors());
@@ -89,8 +88,7 @@ app.get('/posts/:id/comments', (req, res) => {
   );
 });
 
-app.post('/dest/:destination/posts', (req, res) => {
-  console.log('test');
+app.post('/destinations/:destination/blog-posts', (req, res) => {
   const { name, avatar, date, message, tags, photos } = req.body;
   const { destination } = req.params;
   extractImageUrlsFromGroupUrl(photos).then((pictures) => {
@@ -99,6 +97,7 @@ app.post('/dest/:destination/posts', (req, res) => {
       'SELECT * FROM user WHERE username = (?)',
       [name],
       (err, result) => {
+        console.error(err);
         if (result[0]) {
           console.log('Username already exists');
           const existingID = result[0].id;
