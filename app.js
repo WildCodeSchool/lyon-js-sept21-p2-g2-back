@@ -89,7 +89,8 @@ app.get('/posts/:id/comments', (req, res) => {
   );
 });
 
-app.post('/destinations/:destination/blog-posts', (req, res) => {
+app.post('/dest/:destination/posts', (req, res) => {
+  console.log('test');
   const { name, avatar, date, message, tags, photos } = req.body;
   const { destination } = req.params;
   extractImageUrlsFromGroupUrl(photos).then((pictures) => {
