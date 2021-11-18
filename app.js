@@ -9,18 +9,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const connection = require('./db-config');
-
-connection.connect((err) => {
-  if (err) {
-    console.error('error connecting: ' + err.stack);
-  } else {
-    console.log(
-      'connected to database with threadId :  ' + connection.threadId
-    );
-  }
-});
-
 const privateKey = process.env.UPLOAD_CARE_PRIVATE_KEY;
 const publicKey = process.env.UPLOAD_CARE_PUBLIC_KEY;
 function extractImageUrlsFromGroupUrl(groupId) {
