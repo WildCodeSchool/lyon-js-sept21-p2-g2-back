@@ -28,7 +28,7 @@ CREATE TABLE `post` (
   `postContent` text NOT NULL,
   `pictures` text,
   `createdAt` datetime(6) DEFAULT NULL,
-  `tripDate` date NOT NULL,
+  `tripDate` date NULL,
   PRIMARY KEY (`id`),
   KEY `post_fk0` (`authorId`),
   CONSTRAINT `post_fk0` FOREIGN KEY (`authorId`) REFERENCES `user` (`id`)
