@@ -32,19 +32,23 @@ app.get('/destinations/:destination/blog-posts', (req, res) => {
     if (typeof req.query.tags === 'string') {
       sql = `SELECT p.id, p.authorId, p.pictures, p.postContent, p.country, p.tripDate, u.username, u.avatar FROM post p INNER JOIN user u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE p.country=? AND tags LIKE ?`;
       parameters.push(`%${req.query.tags}%`);
+      console.log(`parameters 1: ${parameters}`);
     } else {
       sql =
-        'SELECT p.id, p.authorId, p.pictures, p.postContent, p.country, p.tripDate, u.username, u.avatar FROM post p INNER JOIN user u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE tags LIKE ?';
+        'SELECT p.id, p.authorId, p.pictures, p.postContent, p.country, p.tripDate, u.username, u.avatar FROM post p INNER JOIN user u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE p.country=? AND (tags LIKE ?';
       let tagsArray = [];
       for (let i = 0; i < req.query.tags.length; i++) {
         let foundTag = `%${req.query.tags[i]}%`;
         tagsArray.push(foundTag);
-        if (tagsArray.length > 1) {
+        if (tagsArray.length === req.query.tags.length) {
+          sql += ' OR tags LIKE ?)';
+        } else if (tagsArray.length > 1) {
           sql += ' OR tags LIKE ?';
         }
       }
       tagsArray.unshift(destination);
       parameters = tagsArray;
+      console.log(`parameters 2: ${parameters}`);
     }
   }
   connection.query(sql, parameters, (err, results) => {
