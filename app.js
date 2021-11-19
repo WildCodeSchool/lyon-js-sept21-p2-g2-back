@@ -32,7 +32,6 @@ app.get('/destinations/:destination/blog-posts', (req, res) => {
     if (typeof req.query.tags === 'string') {
       sql = `SELECT p.id, p.authorId, p.pictures, p.postContent, p.country, p.tripDate, u.username, u.avatar FROM post p INNER JOIN user u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE p.country=? AND tags LIKE ?`;
       parameters.push(`%${req.query.tags}%`);
-      console.log(`parameters 1: ${parameters}`);
     } else {
       sql =
         'SELECT p.id, p.authorId, p.pictures, p.postContent, p.country, p.tripDate, u.username, u.avatar FROM post p INNER JOIN user u ON p.authorId = u.id INNER JOIN post_tag t ON p.id = t.postId WHERE p.country=? AND (tags LIKE ?';
@@ -48,13 +47,13 @@ app.get('/destinations/:destination/blog-posts', (req, res) => {
       }
       tagsArray.unshift(destination);
       parameters = tagsArray;
-      console.log(`parameters 2: ${parameters}`);
     }
   }
   connection.query(sql, parameters, (err, results) => {
     if (err) {
       res.status(500).send(`An error occurred: ${err.message}`);
     } else {
+      // eslint-disable-next-line
       console.log(results);
       res.status(200).send(results);
     }
@@ -63,7 +62,6 @@ app.get('/destinations/:destination/blog-posts', (req, res) => {
 
 app.get('/posts/:id', (req, res) => {
   const { id } = req.params;
-  console.log(`id: ${id}`);
   connection.query(
     'SELECT p.*, u.* FROM post p INNER JOIN user u ON p.authorId = u.id WHERE p.id = (?)',
     [id],
@@ -106,7 +104,6 @@ app.post('/destinations/:destination/blog-posts', (req, res) => {
         if (result[0]) {
           console.log('Username already exists');
           const existingID = result[0].id;
-          console.log(existingID);
           connection.query(
             'INSERT INTO post (authorId, tripDate, postContent, pictures, country) VALUES (?, ?, ?, ?, ?)',
             [existingID, date, message, extractedPhotos, destination],
